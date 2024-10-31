@@ -1,25 +1,37 @@
 package main
 
 import (
-  "fmt"
+	"flag"
+	"github.com/YuanJey/debug-server/internal/websockifygo"
+	"log"
+	"strings"
 )
 
-//TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
-// the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.
-
 func main() {
-  //TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
-  // to see how GoLand suggests fixing it.
-  s := "gopher"
-  fmt.Println("Hello and welcome, %s!", s)
+	var keyPem string
+	var certPem string
+	var url string
+	var port string
+	var debugAddr string
 
-  for i := 1; i <= 5; i++ {
-	//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session, 
-	// right-click your code in the editor and select the <b>Debug</b> option. 
-	fmt.Println("i =", 100/i)
-  }
+	flag.StringVar(&port, "port", "0.0.0.0:9000", "SSL key.pem")
+	flag.StringVar(&debugAddr, "addr", "127.0.0.1:2345", "SSL key.pem")
+	flag.StringVar(&keyPem, "key", "", "SSL key.pem")
+	flag.StringVar(&certPem, "cert", "", "SSL cert.pem")
+	flag.StringVar(&url, "url", "/debug", "url path to proxy, e.g. /vnc")
+
+	flag.Parse()
+
+	if !strings.HasPrefix(url, "/") {
+		url = "/" + url
+	}
+
+	wsp := &websockifygo.WSproxy{
+		URL:     url,
+		Target:  debugAddr,
+		KeyPem:  keyPem,
+		CertPem: certPem,
+	}
+	log.Println("Proxying", url, "to", debugAddr, "on", port)
+	wsp.Serve(port)
 }
-
-//TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.
-// Also, you can try interactive lessons for GoLand by selecting 'Help | Learn IDE Features' from the main menu.
